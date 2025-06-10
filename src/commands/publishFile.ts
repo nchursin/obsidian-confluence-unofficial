@@ -15,17 +15,18 @@ const getHtml = async (app: App, md: string, view: MarkdownView) => {
 	const renderDiv = view.contentEl.createEl("div", {});
 	await MarkdownRenderer.render(app, md, renderDiv, "nop", component);
 
-	return renderDiv.innerHTML.replace(
-		/<img([^>]*)>/g,
-		function (match, attributes) {
+	return renderDiv.innerHTML
+		.replace(/<img([^>]*)>/g, function (match, attributes) {
 			// Check if it's already properly closed
 			if (match.trim().endsWith("/>")) {
 				return match;
 			}
 			// Otherwise close it properly
 			return `<img${attributes} />`;
-		},
-	);
+		})
+		.replace(/<br>/g, function (match, attributes) {
+			return `<br/>`;
+		});
 };
 
 export const publishFile = (plugin: ConfluencePlugin): Command => ({
