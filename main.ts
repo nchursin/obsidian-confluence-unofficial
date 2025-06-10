@@ -1,9 +1,7 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin } from "obsidian";
-import {
-	ConfluenceIntegrationSettings,
-	ConfluenceSettingsTab,
-	DEFAULT_SETTINGS,
-} from "src/settings";
+import { ConfluenceIntegrationSettings } from "src/interfaces";
+import { publishFile } from "./src/commands";
+import { ConfluenceSettingsTab, DEFAULT_SETTINGS } from "./src/settings";
 
 class SampleModal extends Modal {
 	constructor(app: App) {
@@ -61,6 +59,7 @@ export default class ConfluenceUnofficialPlugin extends Plugin {
 			},
 		});
 		// This adds a complex command that can check whether the current state of the app allows execution of the command
+		this.addCommand(publishFile(this));
 		this.addCommand({
 			id: "open-sample-modal-complex",
 			name: "Open sample modal (complex)",
