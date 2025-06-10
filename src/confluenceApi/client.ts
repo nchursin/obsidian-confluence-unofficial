@@ -16,7 +16,7 @@ interface ConfluencePage {
 	title: string;
 	spaceKey: string;
 	parentId: string;
-	htmlContent?: string;
+	htmlContent: string;
 	version: number;
 }
 
