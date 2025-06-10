@@ -12,18 +12,19 @@ interface ConfluenceAuthInfo {
 }
 
 interface ConfluencePage {
+	pageId?: string;
 	title: string;
 	spaceKey: string;
 	parentId: string;
 	htmlContent?: string;
-	adf?: any;
+	version: number;
 }
 
 export class ConfluenceClient {
 	constructor(private readonly auth: ConfluenceAuthInfo) {}
 
 	async upsertPage(page: ConfluencePage): Promise<any> {
-		const body = {
+		const body: any = {
 			type: "page",
 			status: "current",
 			title: page.title,
@@ -43,9 +44,20 @@ export class ConfluenceClient {
 			},
 		};
 
+		let url = `${this.auth.url}/rest/api/content`;
+		let method = "POST";
+		if (page.pageId) {
+			body.id = page.pageId;
+			body.version = {
+				number: page.version,
+			};
+			url += `/${page.pageId}`;
+			method = "PUT";
+		}
+
 		return request({
-			url: `${this.auth.url}/rest/api/content`,
-			method: "POST",
+			url,
+			method,
 			headers: {
 				"Content-Type": "application/json; charset=UTF-8",
 				"X-Atlassian-Token": "nocheck",
