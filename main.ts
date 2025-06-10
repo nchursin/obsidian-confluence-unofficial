@@ -1,23 +1,23 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin } from "obsidian";
+import { Editor, MarkdownView, Plugin } from "obsidian";
 import { ConfluenceIntegrationSettings } from "src/interfaces";
 import { publishFile } from "./src/commands";
 import { ConfluenceSettingsTab, DEFAULT_SETTINGS } from "./src/settings";
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.setText("Woah!");
-	}
-
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
-	}
-}
+// class SampleModal extends Modal {
+// 	constructor(app: App) {
+// 		super(app);
+// 	}
+//
+// 	onOpen() {
+// 		const { contentEl } = this;
+// 		contentEl.setText("Woah!");
+// 	}
+//
+// 	onClose() {
+// 		const { contentEl } = this;
+// 		contentEl.empty();
+// 	}
+// }
 
 export default class ConfluenceUnofficialPlugin extends Plugin {
 	settings: ConfluenceIntegrationSettings;
