@@ -1,27 +1,13 @@
 import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
-
-type ValueOf<T> = T[keyof T];
-
-const AuthTypes = {
-	BASIC: "Basic",
-	PAT: "Personal App Token",
-};
-
-type AuthType = ValueOf<typeof AuthTypes>;
-
-// Remember to rename these classes and interfaces!
-export interface ConfluenceIntegrationSettings {
-	confluenceUrl: string;
-	authType: AuthType;
-	username: string;
-	token: string;
-}
+import { AuthTypes, ConfluenceIntegrationSettings } from "./interfaces";
 
 export const DEFAULT_SETTINGS: ConfluenceIntegrationSettings = {
 	confluenceUrl: "",
 	authType: "",
 	username: "",
 	token: "",
+	spaceKey: "",
+	parentId: "",
 };
 
 interface ConfluencePlugin extends Plugin {
@@ -94,5 +80,25 @@ export class ConfluenceSettingsTab extends PluginSettingTab {
 						await this.plugin.saveData(this.plugin.settings);
 					}),
 			);
+
+		new Setting(containerEl).setName("Space Key").addText((text) =>
+			text
+				.setPlaceholder("SPACE")
+				.setValue(this.plugin.settings.spaceKey)
+				.onChange(async (value) => {
+					this.plugin.settings.spaceKey = value;
+					await this.plugin.saveData(this.plugin.settings);
+				}),
+		);
+
+		new Setting(containerEl).setName("Parent Page ID").addText((text) =>
+			text
+				.setPlaceholder("123")
+				.setValue(this.plugin.settings.parentId)
+				.onChange(async (value) => {
+					this.plugin.settings.parentId = value;
+					await this.plugin.saveData(this.plugin.settings);
+				}),
+		);
 	}
 }
