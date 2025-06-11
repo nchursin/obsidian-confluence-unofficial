@@ -1,4 +1,4 @@
-import { Command, Editor, MarkdownView } from "obsidian";
+import { Command, Editor, MarkdownView, Notice } from "obsidian";
 import { convertMdToHtml } from "src/utils/htmlProcessor";
 import { ConfluenceClient } from "src/confluenceApi/client";
 import { ConfluencePlugin } from "src/interfaces";
@@ -51,5 +51,6 @@ export const publishFile = (plugin: ConfluencePlugin): Command => ({
 				fronmatter.confluence_page_version = response.version.number;
 			},
 		);
+		new Notice("The file is successfully published!");
 	},
 });
