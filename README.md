@@ -1,5 +1,7 @@
 # Obsidian Confluence Unofficial
 
+![Build Status](https://github.com/nchursin/obsidian-confluence-unofficial/actions/workflows/test.yml/badge.svg)
+
 > WARNING! This plugin is in a very early stage of development. Feel free to use it, but it's your funeral, pal. :)
 
 This is a plugin to publish pages from Obsidian to Confluence. It's Unofficial, in case you haven't noticed.
