@@ -33,4 +33,4 @@ jobs:
             --title="$tag" \
             --draft \
             --generate-notes \
-            main.js manifest.json
+            main.js manifest.json styles.css
