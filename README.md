@@ -16,6 +16,11 @@ You might be asking "Why, God, why they keep making these plugins?!". The reason
 1. Create and update pages in Confluence
 1. HTML-based upload. Which means if you use plugins, that modify your Obsidian view (like PlantUMML), this will be uploaded to Confluence
 
+### Plans
+1. Upload images automatically
+1. Download and edit pages
+1. Support "Automatic table of contents" plugin or any other way to generate ToC automatically
+
 ## Installation
 This plugin isn't yet published to Obsidian plugin repository. The easiest way to install it is via [BRAT](https://github.com/TfTHacker/obsidian42-brat).
 
