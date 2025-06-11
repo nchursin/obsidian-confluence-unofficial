@@ -8,7 +8,7 @@ export class ConfluenceConnectionInfo implements ConfluenceAuthInfo {
 	}
 	getAuth(): Auth {
 		let authType: "BASIC" | "PAT" = "BASIC";
-		if (this.plugin.settings.authType == AuthTypes.PAT) {
+		if (this.plugin.settings.authType == "PAT") {
 			authType = "PAT";
 		}
 		return {
