@@ -1,5 +1,5 @@
 import { request } from "obsidian";
-import { ConfluenceAuthInfo, PageRequestBody } from "./interfaces";
+import { PageRequestBody } from "./interfaces";
 
 export interface ConfluencePage {
 	pageId?: string;
@@ -8,6 +8,22 @@ export interface ConfluencePage {
 	parentId: string;
 	htmlContent: string;
 	version: number;
+}
+
+export interface ConfluenceAuthInfo {
+	getURL(): string;
+	getAuth(): Auth;
+}
+
+export interface Auth {
+	type: "BASIC" | "PAT";
+	basic?: {
+		username: string;
+		token: string;
+	};
+	bearer?: {
+		token: string;
+	};
 }
 
 export class ConfluenceClient {
@@ -34,7 +50,7 @@ export class ConfluenceClient {
 			},
 		};
 
-		let url = `${this.auth.url}/rest/api/content`;
+		let url = `${this.auth.getURL()}/rest/api/content`;
 		let method = "POST";
 		if (page.pageId) {
 			body.id = page.pageId;
@@ -53,7 +69,7 @@ export class ConfluenceClient {
 				"X-Atlassian-Token": "nocheck",
 				"User-Agent": "dummy",
 				Accept: "application/json",
-				Authorization: `Bearer ${this.auth.bearer?.token}`,
+				Authorization: `Bearer ${this.auth.getAuth().bearer?.token}`,
 			},
 			body: JSON.stringify(body),
 		});

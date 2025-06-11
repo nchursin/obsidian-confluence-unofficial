@@ -1,14 +1,3 @@
-export interface ConfluenceAuthInfo {
-	url: string;
-	basic?: {
-		username: string;
-		token: string;
-	};
-	bearer?: {
-		token: string;
-	};
-}
-
 export interface PageRequestBody {
 	id?: string;
 	type: "page";

@@ -4,17 +4,13 @@ import { ConfluenceClient } from "src/confluenceApi";
 import { ConfluencePlugin } from "src/interfaces";
 import { ErrorModal } from "src/components/errorModal";
 
-export const publishFile = (plugin: ConfluencePlugin): Command => ({
+export const publishFile = (
+	plugin: ConfluencePlugin,
+	confluenceClient: ConfluenceClient,
+): Command => ({
 	id: "obsidian-confluence-unof-publish-file",
 	name: "OCU: Publish File",
 	editorCallback: async (editor: Editor, view: MarkdownView) => {
-		const confluenceClient = new ConfluenceClient({
-			url: plugin.settings.confluenceUrl,
-			bearer: {
-				token: plugin.settings.token,
-			},
-		});
-
 		try {
 			if (!view.file) {
 				return;
