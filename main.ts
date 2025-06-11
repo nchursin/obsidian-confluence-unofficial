@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Plugin } from "obsidian";
+import { Plugin } from "obsidian";
 import { ConfluenceClient, ConfluenceConnectionInfo } from "src/confluenceApi";
 import { ConfluenceIntegrationSettings } from "src/interfaces";
 import { publishFile } from "./src/commands";
