@@ -1,4 +1,4 @@
-import { AuthTypes, ConfluencePlugin } from "src/interfaces";
+import { ConfluencePlugin } from "src/interfaces";
 import { Auth, ConfluenceAuthInfo } from "./client";
 
 export class ConfluenceConnectionInfo implements ConfluenceAuthInfo {
