@@ -4,4 +4,12 @@ export class Notice {
   }
 }
 
+export class Component {
+  load() {}
+}
+
+export const MarkdownRenderer = {
+  render: jest.fn(),
+};
+
 // Add other mocks as needed for your tests 
