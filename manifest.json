@@ -1,11 +1,11 @@
 {
-  "id": "obsidian-confluence-unofficial",
-  "name": "Obsidian Confluence Unofficial",
-  "version": "1.0.0",
-  "minAppVersion": "0.15.0",
-  "description": "Obsidian Confulence Unofficial (but working) plugin",
-  "author": "NChursin",
-  "authorUrl": "https://chursin.dev",
-  "fundingUrl": "https://chursin.dev",
-  "isDesktopOnly": true
+	"id": "obsidian-confluence-unofficial",
+	"name": "Obsidian Confluence Unofficial",
+	"version": "0.1.1",
+	"minAppVersion": "0.15.0",
+	"description": "Obsidian Confulence Unofficial (but working) plugin",
+	"author": "NChursin",
+	"authorUrl": "https://chursin.dev",
+	"fundingUrl": "https://chursin.dev",
+	"isDesktopOnly": true
 }
