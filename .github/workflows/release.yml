@@ -33,4 +33,3 @@ jobs:
             --title="$tag" \
             --draft \
             main.js manifest.json
-			# styles.css
