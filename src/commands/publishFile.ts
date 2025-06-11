@@ -1,33 +1,7 @@
-import {
-	App,
-	Command,
-	Component,
-	Editor,
-	MarkdownRenderer,
-	MarkdownView,
-} from "obsidian";
-import { ConfluenceClient } from "../confluenceApi/client";
-import { ConfluencePlugin } from "../interfaces";
-
-const getHtml = async (app: App, md: string, view: MarkdownView) => {
-	const component = new Component();
-	component.load();
-	const renderDiv = view.contentEl.createEl("div", {});
-	await MarkdownRenderer.render(app, md, renderDiv, "nop", component);
-
-	return renderDiv.innerHTML
-		.replace(/<img([^>]*)>/g, function (match, attributes) {
-			// Check if it's already properly closed
-			if (match.trim().endsWith("/>")) {
-				return match;
-			}
-			// Otherwise close it properly
-			return `<img${attributes} />`;
-		})
-		.replace(/<br>/g, function (match, attributes) {
-			return `<br/>`;
-		});
-};
+import { Command, Editor, MarkdownView } from "obsidian";
+import { convertMdToHtml } from "src/utils/htmlProcessor";
+import { ConfluenceClient } from "src/confluenceApi/client";
+import { ConfluencePlugin } from "src/interfaces";
 
 export const publishFile = (plugin: ConfluencePlugin): Command => ({
 	id: "obsidian-confluence-unof-publish-file",
@@ -59,7 +33,11 @@ export const publishFile = (plugin: ConfluencePlugin): Command => ({
 			spaceKey: spaceKey || plugin.settings.spaceKey,
 			title: view.getDisplayText(),
 			parentId: plugin.settings.parentId,
-			htmlContent: await getHtml(plugin.app, view.getViewData(), view),
+			htmlContent: await convertMdToHtml(
+				plugin.app,
+				view.getViewData(),
+				view,
+			),
 			version: version ? version + 1 : 1,
 		});
 
