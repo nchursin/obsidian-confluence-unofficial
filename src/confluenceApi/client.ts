@@ -1,17 +1,7 @@
 import { request } from "obsidian";
+import { ConfluenceAuthInfo, PageRequestBody } from "./interfaces";
 
-interface ConfluenceAuthInfo {
-	url: string;
-	basic?: {
-		username: string;
-		token: string;
-	};
-	bearer?: {
-		token: string;
-	};
-}
-
-interface ConfluencePage {
+export interface ConfluencePage {
 	pageId?: string;
 	title: string;
 	spaceKey: string;
@@ -23,8 +13,8 @@ interface ConfluencePage {
 export class ConfluenceClient {
 	constructor(private readonly auth: ConfluenceAuthInfo) {}
 
-	async upsertPage(page: ConfluencePage): Promise<any> {
-		const body: any = {
+	async upsertPage(page: ConfluencePage): Promise<string> {
+		const body: PageRequestBody = {
 			type: "page",
 			status: "current",
 			title: page.title,

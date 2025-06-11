@@ -1,6 +1,6 @@
 import { Command, Editor, MarkdownView, Notice } from "obsidian";
 import { convertMdToHtml } from "src/utils/htmlProcessor";
-import { ConfluenceClient } from "src/confluenceApi/client";
+import { ConfluenceClient } from "src/confluenceApi";
 import { ConfluencePlugin } from "src/interfaces";
 import { ErrorModal } from "src/components/errorModal";
 
