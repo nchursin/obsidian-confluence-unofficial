@@ -45,6 +45,7 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 					};
 				},
 			),
+			getAttachments: jest.fn().mockResolvedValue([]),
 		};
 
 		const window = new Window();
@@ -109,8 +110,20 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 	});
 
 	it("should publish file with attachments twice", async () => {
-		const attachments = ["imageUrl1", "imageUrl2", "imageUrl3"];
+		const existingAttachment = "existingAttachment";
+		const newAttachments = ["imageUrl1", "imageUrl2", "imageUrl3"];
+		const attachments = [...newAttachments, existingAttachment];
 		renderDiv = divWithImages(renderDiv, attachments);
+
+		confluenceClient.getAttachments.mockResolvedValue([
+			{
+				id: "attachment",
+				name: existingAttachment,
+				links: {
+					download: `${baseUrl}/${basename(existingAttachment)}?${urlParams.replaceAll("&", "&amp;")}`,
+				},
+			},
+		]);
 
 		const result = await sut.uploadMarkdown(view, { ...destination });
 
@@ -145,9 +158,9 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 		);
 
 		expect(confluenceClient.uploadImage).toHaveBeenCalledTimes(
-			attachments.length,
+			newAttachments.length,
 		);
-		attachments.forEach((att) =>
+		newAttachments.forEach((att) =>
 			expect(confluenceClient.uploadImage).toHaveBeenCalledWith(
 				destination.pageId,
 				basename(att),
@@ -158,6 +171,50 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 		expect(result).toEqual({
 			...destination,
 			version: 7,
+		});
+	});
+
+	it("should NOT re-upload attachments if they are there already", async () => {
+		const attahcment = "imageUrl1";
+		const attachments = [attahcment];
+		confluenceClient.getAttachments.mockResolvedValue([
+			{
+				id: "attachment",
+				name: attahcment,
+				links: {
+					download: `${baseUrl}/${basename(attahcment)}?${urlParams.replaceAll("&", "&amp;")}`,
+				},
+			},
+		]);
+		renderDiv = divWithImages(renderDiv, attachments);
+
+		const result = await sut.uploadMarkdown(view, { ...destination });
+
+		expect(confluenceClient.upsertPage).toHaveBeenCalledTimes(1);
+		expect(confluenceClient.upsertPage).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				pageId: destination.pageId,
+				spaceKey: destination.spaceKey,
+				title: "Title",
+				parentId: destination.parentId,
+				htmlContent: downgradeFromHtml5(renderDiv.innerHTML),
+				version: 6,
+			}),
+		);
+
+		let htmlAfterAttachments = renderDiv.innerHTML;
+		attachments.forEach((att) => {
+			htmlAfterAttachments = htmlAfterAttachments.replaceAll(
+				att,
+				`${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`,
+			);
+		});
+
+		expect(confluenceClient.uploadImage).not.toHaveBeenCalled();
+
+		expect(result).toEqual({
+			...destination,
+			version: 6,
 		});
 	});
 

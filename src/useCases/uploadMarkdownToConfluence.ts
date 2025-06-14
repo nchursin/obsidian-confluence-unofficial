@@ -37,6 +37,11 @@ export class UploadMarkDownToConfluenceUseCase {
 		destination.pageId = response.id;
 		destination.version = response.version.number;
 
+		const existingAttachments = await this.confluenceClient.getAttachments({
+			pageId: destination.pageId || "",
+		});
+		const attachmentNames = existingAttachments.map((att) => att.name);
+
 		const linkWrappers = renderDiv.getElementsByClassName(
 			"internal-embed media-embed image-embed",
 		);
@@ -55,15 +60,31 @@ export class UploadMarkDownToConfluenceUseCase {
 		);
 
 		const atts = await Promise.all(
-			imagesSrcPlain.map(async (filePath: string) => {
-				const src = decodeURI(filePath || "");
-				const contents = await readFile(src);
-				const basename = path.basename(src);
-				return this.confluenceClient.uploadImage(
-					destination.pageId || "",
-					basename,
-					contents,
+			imagesSrcPlain
+				.map((filePath: string) => decodeURI(filePath || ""))
+				.filter((src) => !attachmentNames.includes(path.basename(src)))
+				.map(async (src: string) => {
+					const contents = await readFile(src);
+					const basename = path.basename(src);
+					return this.confluenceClient.uploadImage(
+						destination.pageId || "",
+						basename,
+						contents,
+					);
+				}),
+		);
+
+		if (!atts.length) {
+			return destination;
+		}
+
+		atts.push(
+			...existingAttachments.map((att) => {
+				att.links.download = att.links.download.replaceAll(
+					"&amp;",
+					"&",
 				);
+				return att;
 			}),
 		);
 
