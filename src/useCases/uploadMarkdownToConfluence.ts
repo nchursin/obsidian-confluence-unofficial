@@ -21,6 +21,10 @@ export class UploadMarkDownToConfluenceUseCase {
 
 		const renderDiv = await convertMdToHtmlElement(view);
 
+		if (!destination.pageId) {
+			destination.version = 0;
+		}
+
 		const response: any = await this.confluenceClient.upsertPage({
 			pageId: destination.pageId,
 			spaceKey: destination.spaceKey,

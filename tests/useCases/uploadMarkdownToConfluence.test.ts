@@ -188,12 +188,6 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 	});
 
 	it("if pageId is not passed, returns the one ConfluenceClient responded with", async () => {
-		const img = doc.createElement("img");
-		// non local images do NOT have the parent element with classes
-		// "internal-embed media-embed image-embed"
-		img.setAttribute("src", "imageUrl");
-		renderDiv.appendChild(img);
-
 		const result = await sut.uploadMarkdown(view, {
 			...destination,
 			pageId: undefined,
@@ -203,18 +197,32 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 		expect(confluenceClient.upsertPage).toHaveBeenCalledWith(
 			expect.objectContaining({
 				pageId: undefined,
-				spaceKey: destination.spaceKey,
-				title: "Title",
-				parentId: destination.parentId,
-				htmlContent: downgradeFromHtml5(renderDiv.innerHTML),
-				version: 6,
 			}),
 		);
-		expect(result).toEqual({
+		expect(result).toEqual(
+			expect.objectContaining({
+				pageId: "page-1",
+			}),
+		);
+	});
+
+	it("if pageId is not passed, version must be 1", async () => {
+		const result = await sut.uploadMarkdown(view, {
 			...destination,
-			pageId: "page-1",
-			version: 6,
+			pageId: undefined,
 		});
+
+		expect(confluenceClient.upsertPage).toHaveBeenCalledTimes(1);
+		expect(confluenceClient.upsertPage).toHaveBeenCalledWith(
+			expect.objectContaining({
+				version: 1,
+			}),
+		);
+		expect(result).toEqual(
+			expect.objectContaining({
+				version: 1,
+			}),
+		);
 	});
 
 	it("should use new pageId if non is passed", async () => {
@@ -233,7 +241,7 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 				title: "Title",
 				parentId: destination.parentId,
 				htmlContent: downgradeFromHtml5(renderDiv.innerHTML),
-				version: 6,
+				version: 1,
 			}),
 		);
 
@@ -252,7 +260,7 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 				title: "Title",
 				parentId: destination.parentId,
 				htmlContent: downgradeFromHtml5(htmlAfterAttachments),
-				version: 7,
+				version: 2,
 			}),
 		);
 
@@ -270,7 +278,7 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 		expect(result).toEqual({
 			...destination,
 			pageId: "page-1",
-			version: 7,
+			version: 2,
 		});
 	});
 
