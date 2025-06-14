@@ -4,6 +4,7 @@
 ![Plugin Version](https://img.shields.io/badge/plugin-0.2.1-blue)
 ![Required Obsidian Version](https://img.shields.io/badge/requires-0.15.0+-purple)
 [![libera manifesto](https://img.shields.io/badge/libera-manifesto-lightgrey.svg)](https://liberamanifesto.com)
+[![codecov](https://codecov.io/gh/nchursin/obsidian-confluence-unofficial/branch/main/graph/badge.svg)](https://codecov.io/gh/nchursin/obsidian-confluence-unofficial)
 
 
 > WARNING! This plugin is in a very early stage of development. Feel free to use it, but it's your funeral, pal. :)
