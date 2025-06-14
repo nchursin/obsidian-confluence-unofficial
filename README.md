@@ -21,9 +21,9 @@ You might be asking "Why, God, why they keep making these plugins?!". The reason
 1. Basic or personal token auth
 1. Create and update pages in Confluence
 1. HTML-based upload. Which means if you use plugins, that modify your Obsidian view (like PlantUMML), this will be uploaded to Confluence
+1. Upload images automatically. The plugin looks through the page attachments to find new ones in obsidian using filenames. Then it uploads the missing ones and replaces links in the code.
 
 ### Plans
-1. Upload images automatically
 1. Download and edit pages
 1. Support "Automatic table of contents" plugin or any other way to generate ToC automatically
 
