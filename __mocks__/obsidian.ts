@@ -1,15 +1,16 @@
 export class Notice {
-  constructor(message: string) {
-    // Optionally, store or log the message for test assertions
-  }
+	constructor(message: string) {
+		// Optionally, store or log the message for test assertions
+	}
 }
 
 export class Component {
-  load() {}
+	load() {}
 }
 
 export const MarkdownRenderer = {
-  render: jest.fn(),
+	render: jest.fn(),
 };
 
-// Add other mocks as needed for your tests 
+// Add other mocks as needed for your tests
+

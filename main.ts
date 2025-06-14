@@ -1,24 +1,9 @@
 import { Plugin } from "obsidian";
 import { ConfluenceClient, ConfluenceConnectionInfo } from "src/confluenceApi";
 import { ConfluenceIntegrationSettings } from "src/interfaces";
+import { UploadMarkDownToConfluenceUseCase } from "src/useCases";
 import { publishFile } from "./src/commands";
 import { ConfluenceSettingsTab, DEFAULT_SETTINGS } from "./src/settings";
-
-// class SampleModal extends Modal {
-// 	constructor(app: App) {
-// 		super(app);
-// 	}
-//
-// 	onOpen() {
-// 		const { contentEl } = this;
-// 		contentEl.setText("Woah!");
-// 	}
-//
-// 	onClose() {
-// 		const { contentEl } = this;
-// 		contentEl.empty();
-// 	}
-// }
 
 export default class ConfluenceUnofficialPlugin extends Plugin {
 	settings: ConfluenceIntegrationSettings;
@@ -43,7 +28,9 @@ export default class ConfluenceUnofficialPlugin extends Plugin {
 		this.addCommand(
 			publishFile(
 				this,
-				new ConfluenceClient(new ConfluenceConnectionInfo(this)),
+				new UploadMarkDownToConfluenceUseCase(
+					new ConfluenceClient(new ConfluenceConnectionInfo(this)),
+				),
 			),
 		);
 
