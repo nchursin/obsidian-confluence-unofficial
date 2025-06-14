@@ -31,8 +31,6 @@ export class ConfluenceClient {
 	constructor(private readonly auth: ConfluenceAuthInfo) {}
 
 	async upsertPage(page: ConfluencePage): Promise<any> {
-		console.log("page.htmlContent >> ", page.htmlContent);
-
 		const body: PageRequestBody = {
 			type: "page",
 			status: "current",
@@ -120,7 +118,6 @@ export class ConfluenceClient {
 			},
 			body: bodyBytes.buffer,
 		});
-		console.log("responseText >> ", responseText);
 		let response;
 		try {
 			response = JSON.parse(responseText);
@@ -135,12 +132,42 @@ export class ConfluenceClient {
 			);
 		}
 		const attachment = response.results[0];
-		console.log("attachment >> ", attachment);
 		return {
 			id: attachment.id,
 			name: attachment.title,
 			links: attachment._links,
 		};
+	}
+
+	async getAttachments({
+		pageId,
+	}: {
+		pageId: string;
+	}): Promise<[Attachment]> {
+		const url = `${this.auth.getURL()}/rest/api/v2/pages/${pageId}/attachments?limit=100`;
+
+		const responseText = await request({
+			url,
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json; charset=UTF-8",
+				"X-Atlassian-Token": "nocheck",
+				"User-Agent": "dummy",
+				Accept: "application/json",
+				Authorization: getAuthHeader(this.auth),
+			},
+		});
+
+		const response = JSON.parse(responseText);
+		const attachments = response.results.map(
+			(res: any): Attachment => ({
+				id: res.id,
+				name: res.title,
+				links: res._links,
+			}),
+		);
+
+		return attachments;
 	}
 }
 

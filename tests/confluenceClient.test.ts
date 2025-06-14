@@ -104,6 +104,49 @@ describe("ConfluenceClient", () => {
 		});
 	});
 
+	describe("getAttachments", () => {
+		it("should request attachments from confluence", async () => {
+			const confluenceResponse = {
+				results: [
+					{
+						id: "att-id",
+						title: "fileName-1",
+						_links: {
+							download: "<string>",
+						},
+					},
+				],
+			};
+			mockAuth.getAuth.mockReturnValue({
+				type: "PAT",
+				bearer: { token: "tok" },
+			});
+
+			mockRequest.mockResolvedValue(JSON.stringify(confluenceResponse));
+
+			const page = {
+				pageId: "test-page-id",
+			};
+
+			await expect(client.getAttachments(page)).resolves.toEqual([
+				{
+					id: "att-id",
+					name: "fileName-1",
+					links: {
+						download: "<string>",
+					},
+				},
+			]);
+
+			const call = mockRequest.mock.calls[0][0];
+			expect(call.url).toBe(
+				`https://example.atlassian.net/rest/api/v2/pages/${page.pageId}/attachments?limit=100`,
+			);
+			expect(call.method).toBe("GET");
+			expect(call.headers["Authorization"]).toMatch(/^Bearer/);
+		});
+	});
+
 	describe("getAuthHeader (indirect via upsertPage)", () => {
 		it("should throw if BASIC username is missing", async () => {
 			mockAuth.getAuth.mockReturnValue({
