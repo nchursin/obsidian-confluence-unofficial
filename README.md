@@ -8,6 +8,8 @@
 
 > WARNING! This plugin is in a very early stage of development. Feel free to use it, but it's your funeral, pal. :)
 
+> HELP WANTED! I don't have opportunity to test this plugin on cloud Confluence. AFAIU there are different APIs. I plan to support as many versions of the API as possible, so let me know if you want to test the plugin on different versions of Confluence
+
 This is a plugin to publish pages from Obsidian to Confluence. It's Unofficial, in case you haven't noticed.
 
 ## Motivation
