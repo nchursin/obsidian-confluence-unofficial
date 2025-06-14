@@ -1,12 +1,20 @@
 import { readFile } from "fs/promises";
 import { MarkdownView } from "obsidian";
 import * as path from "path";
+import { basename } from "path";
 import { ConfluenceClient } from "src/confluenceApi";
+import { Attachment } from "src/confluenceApi/model";
 import { PageInfo } from "src/model";
 import {
 	convertMdToHtmlElement,
 	downgradeFromHtml5,
 } from "src/utils/htmlProcessor";
+
+interface LocalUploadedFile {
+	attachmentInfo?: Attachment;
+	localPath: string;
+	unescapedPath: string;
+}
 
 export class UploadMarkDownToConfluenceUseCase {
 	constructor(private readonly confluenceClient: ConfluenceClient) {}
@@ -34,7 +42,6 @@ export class UploadMarkDownToConfluenceUseCase {
 		const existingAttachments = await this.confluenceClient.getAttachments({
 			pageId: destination.pageId || "",
 		});
-		const attachmentNames = existingAttachments.map((att) => att.name);
 
 		const linkWrappers = renderDiv.getElementsByClassName(
 			"internal-embed media-embed image-embed",
@@ -45,40 +52,65 @@ export class UploadMarkDownToConfluenceUseCase {
 			)
 			.map((img) => img.attributes.getNamedItem("src")?.value || "");
 
-		const imagesSrcPlain = images.map((filePath) =>
-			filePath?.replace(/app:\/\/\w+/, "").replace(/\?.+/, ""),
-		);
-
-		const atts = await Promise.all(
-			imagesSrcPlain
-				.map((filePath: string) => decodeURI(filePath || ""))
-				.filter((src) => !attachmentNames.includes(path.basename(src)))
-				.map(async (src: string) => {
-					const contents = await readFile(src);
-					const basename = path.basename(src);
-					return this.confluenceClient.uploadImage(
-						destination.pageId || "",
-						basename,
-						contents,
-					);
+		const imagesSrcPlain = images
+			.map(
+				(filePath): LocalUploadedFile => ({
+					localPath: filePath,
+					unescapedPath: filePath,
 				}),
+			)
+			.map((file) => ({
+				...file,
+				localPath: decodeURI(
+					file.localPath
+						?.replace(/app:\/\/\w+/, "")
+						.replace(/\?.+/, ""),
+				),
+			}));
+
+		const localFiles: LocalUploadedFile[] = imagesSrcPlain.map(
+			(src: LocalUploadedFile) => {
+				const filename = basename(src.localPath);
+				const attachmentInfo = existingAttachments.find(
+					(att: Attachment) => att.name === filename,
+				);
+				if (attachmentInfo) {
+					attachmentInfo.links.download =
+						attachmentInfo?.links.download.replaceAll("&amp;", "&");
+				}
+				return {
+					...src,
+					attachmentInfo,
+				};
+			},
 		);
 
-		atts.push(
-			...existingAttachments.map((att) => {
-				att.links.download = att.links.download.replaceAll(
-					"&amp;",
-					"&",
+		const atts: LocalUploadedFile[] = await Promise.all(
+			localFiles.map(async (file: LocalUploadedFile) => {
+				if (file.attachmentInfo) {
+					return file;
+				}
+				const src = file.localPath;
+				const contents = await readFile(src);
+				const basename = path.basename(src);
+				const attachmentInfo = await this.confluenceClient.uploadImage(
+					destination.pageId || "",
+					basename,
+					contents,
 				);
-				return att;
+				return {
+					...file,
+					attachmentInfo,
+				};
 			}),
 		);
 
 		let resultHtml = downgradeFromHtml5(renderDiv.innerHTML);
-		atts.forEach((att, index) => {
+		atts.forEach((att) => {
 			resultHtml = resultHtml.replace(
-				images[index],
-				att.links.download.replaceAll("&", "&amp;"),
+				att.unescapedPath,
+				att.attachmentInfo?.links.download.replaceAll("&", "&amp;") ||
+					"",
 			);
 		});
 
@@ -135,13 +167,14 @@ export class UploadMarkDownToConfluenceUseCase {
 			return destination;
 		}
 
-		const imagesSrcPlain = images.map((filePath) =>
-			filePath?.replace(/app:\/\/\w+/, "").replace(/\?.+/, ""),
-		);
+		const imagesSrcPlain = images
+			.map((filePath) =>
+				filePath?.replace(/app:\/\/\w+/, "").replace(/\?.+/, ""),
+			)
+			.map((filePath: string) => decodeURI(filePath || ""));
 
 		const atts = await Promise.all(
 			imagesSrcPlain
-				.map((filePath: string) => decodeURI(filePath || ""))
 				.filter((src) => !attachmentNames.includes(path.basename(src)))
 				.map(async (src: string) => {
 					const contents = await readFile(src);

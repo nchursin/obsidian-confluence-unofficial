@@ -164,6 +164,61 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 		});
 	});
 
+	it("should replace URLs correctly for both existing and new attachments", async () => {
+		const existingAttachment = "existingAttachment";
+		const newAttachments = ["imageUrl1"];
+		const attachments = [existingAttachment, ...newAttachments];
+		renderDiv = divWithImages(renderDiv, attachments);
+
+		confluenceClient.getAttachments.mockResolvedValue([
+			{
+				id: "attachment",
+				name: existingAttachment,
+				links: {
+					download: `${baseUrl}/${basename(existingAttachment)}?${urlParams.replaceAll("&", "&amp;")}`,
+				},
+			},
+		]);
+
+		let htmlAfterAttachments = renderDiv.innerHTML;
+		attachments.forEach((att) => {
+			htmlAfterAttachments = htmlAfterAttachments.replaceAll(
+				att,
+				`${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`,
+			);
+		});
+
+		const result = await sut.uploadMarkdown(view, { ...destination });
+
+		expect(confluenceClient.uploadImage).toHaveBeenCalledTimes(
+			newAttachments.length,
+		);
+		newAttachments.forEach((att) =>
+			expect(confluenceClient.uploadImage).toHaveBeenCalledWith(
+				destination.pageId,
+				basename(att),
+				Buffer.from("fake image content"),
+			),
+		);
+
+		expect(confluenceClient.upsertPage).toHaveBeenCalledTimes(1);
+		expect(confluenceClient.upsertPage).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				pageId: destination.pageId,
+				spaceKey: destination.spaceKey,
+				title: "Title",
+				parentId: destination.parentId,
+				htmlContent: downgradeFromHtml5(htmlAfterAttachments),
+				version: 6,
+			}),
+		);
+
+		expect(result).toEqual({
+			...destination,
+			version: 6,
+		});
+	});
+
 	it("should NOT re-upload attachments if they are there already", async () => {
 		const attahcment = "imageUrl1";
 		const attachments = [attahcment];
