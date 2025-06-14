@@ -109,7 +109,7 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 		});
 	});
 
-	it("should publish file with attachments twice", async () => {
+	it("should publish file and attachments", async () => {
 		const existingAttachment = "existingAttachment";
 		const newAttachments = ["imageUrl1", "imageUrl2", "imageUrl3"];
 		const attachments = [...newAttachments, existingAttachment];
@@ -125,19 +125,6 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 			},
 		]);
 
-		const result = await sut.uploadMarkdown(view, { ...destination });
-
-		expect(confluenceClient.upsertPage).toHaveBeenCalledWith(
-			expect.objectContaining({
-				pageId: destination.pageId,
-				spaceKey: destination.spaceKey,
-				title: "Title",
-				parentId: destination.parentId,
-				htmlContent: downgradeFromHtml5(renderDiv.innerHTML),
-				version: 6,
-			}),
-		);
-
 		let htmlAfterAttachments = renderDiv.innerHTML;
 		attachments.forEach((att) => {
 			htmlAfterAttachments = htmlAfterAttachments.replaceAll(
@@ -146,14 +133,17 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 			);
 		});
 
-		expect(confluenceClient.upsertPage).toHaveBeenCalledWith(
+		const result = await sut.uploadMarkdown(view, { ...destination });
+
+		expect(confluenceClient.upsertPage).toHaveBeenCalledTimes(1);
+		expect(confluenceClient.upsertPage).toHaveBeenLastCalledWith(
 			expect.objectContaining({
 				pageId: destination.pageId,
 				spaceKey: destination.spaceKey,
 				title: "Title",
 				parentId: destination.parentId,
 				htmlContent: downgradeFromHtml5(htmlAfterAttachments),
-				version: 7,
+				version: 6,
 			}),
 		);
 
@@ -170,7 +160,7 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 
 		expect(result).toEqual({
 			...destination,
-			version: 7,
+			version: 6,
 		});
 	});
 
@@ -190,18 +180,6 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 
 		const result = await sut.uploadMarkdown(view, { ...destination });
 
-		expect(confluenceClient.upsertPage).toHaveBeenCalledTimes(1);
-		expect(confluenceClient.upsertPage).toHaveBeenLastCalledWith(
-			expect.objectContaining({
-				pageId: destination.pageId,
-				spaceKey: destination.spaceKey,
-				title: "Title",
-				parentId: destination.parentId,
-				htmlContent: downgradeFromHtml5(renderDiv.innerHTML),
-				version: 6,
-			}),
-		);
-
 		let htmlAfterAttachments = renderDiv.innerHTML;
 		attachments.forEach((att) => {
 			htmlAfterAttachments = htmlAfterAttachments.replaceAll(
@@ -209,6 +187,18 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 				`${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`,
 			);
 		});
+
+		expect(confluenceClient.upsertPage).toHaveBeenCalledTimes(1);
+		expect(confluenceClient.upsertPage).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				pageId: destination.pageId,
+				spaceKey: destination.spaceKey,
+				title: "Title",
+				parentId: destination.parentId,
+				htmlContent: downgradeFromHtml5(htmlAfterAttachments),
+				version: 6,
+			}),
+		);
 
 		expect(confluenceClient.uploadImage).not.toHaveBeenCalled();
 
@@ -282,7 +272,7 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 		);
 	});
 
-	it("should use new pageId if non is passed", async () => {
+	it("should use new pageId for uploads if non is passed", async () => {
 		const attachments = ["imageUrl1"];
 		renderDiv = divWithImages(renderDiv, attachments);
 
@@ -352,17 +342,6 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 			...destination,
 		});
 
-		expect(confluenceClient.upsertPage).toHaveBeenCalledWith(
-			expect.objectContaining({
-				pageId: destination.pageId,
-				spaceKey: destination.spaceKey,
-				title: "Title",
-				parentId: destination.parentId,
-				htmlContent: downgradeFromHtml5(renderDiv.innerHTML),
-				version: 6,
-			}),
-		);
-
 		let htmlAfterAttachments = renderDiv.innerHTML;
 		attachments.forEach((att) => {
 			htmlAfterAttachments = htmlAfterAttachments.replaceAll(
@@ -378,12 +357,12 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 				title: "Title",
 				parentId: destination.parentId,
 				htmlContent: downgradeFromHtml5(htmlAfterAttachments),
-				version: 7,
+				version: 6,
 			}),
 		);
 		expect(result).toEqual({
 			...destination,
-			version: 7,
+			version: 6,
 		});
 	});
 });

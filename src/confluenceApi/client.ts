@@ -144,7 +144,7 @@ export class ConfluenceClient {
 	}: {
 		pageId: string;
 	}): Promise<[Attachment]> {
-		const url = `${this.auth.getURL()}/rest/api/v2/pages/${pageId}/attachments?limit=100`;
+		const url = `${this.auth.getURL()}/rest/api/content/${pageId}/child/attachment?limit=100`;
 
 		const responseText = await request({
 			url,

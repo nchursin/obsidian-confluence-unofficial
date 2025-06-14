@@ -140,7 +140,7 @@ describe("ConfluenceClient", () => {
 
 			const call = mockRequest.mock.calls[0][0];
 			expect(call.url).toBe(
-				`https://example.atlassian.net/rest/api/v2/pages/${page.pageId}/attachments?limit=100`,
+				`https://example.atlassian.net/rest/api/content/${page.pageId}/child/attachment?limit=100`,
 			);
 			expect(call.method).toBe("GET");
 			expect(call.headers["Authorization"]).toMatch(/^Bearer/);
