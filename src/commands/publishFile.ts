@@ -1,21 +1,23 @@
 import { Command, Editor, MarkdownView, Notice } from "obsidian";
-import { convertMdToHtml } from "src/utils/htmlProcessor";
-import { ConfluenceClient } from "src/confluenceApi";
 import { ConfluencePlugin } from "src/interfaces";
 import { ErrorModal } from "src/components/errorModal";
+import { UploadMarkDownToConfluenceUseCase } from "src/useCases";
 
 export const publishFile = (
 	plugin: ConfluencePlugin,
-	confluenceClient: ConfluenceClient,
+	publishUseCase: UploadMarkDownToConfluenceUseCase,
 ): Command => ({
 	id: "obsidian-confluence-unof-publish-file",
 	name: "OCU: Publish File",
-	editorCallback: async (editor: Editor, view: MarkdownView) => {
+	editorCallback: async (_: Editor, view: MarkdownView) => {
 		try {
 			if (!view.file) {
 				return;
 			}
-			let pageId, spaceKey;
+			new Notice("Uploading page to Confluence...");
+
+			let pageId: string | undefined;
+			let spaceKey: string | undefined;
 			let version = 1;
 			await plugin.app.fileManager.processFrontMatter(
 				view.file,
@@ -26,30 +28,26 @@ export const publishFile = (
 				},
 			);
 
-			const stringResponse = await confluenceClient.upsertPage({
-				pageId: pageId,
-				spaceKey: spaceKey || plugin.settings.spaceKey,
-				title: view.getDisplayText(),
-				parentId: plugin.settings.parentId,
-				htmlContent: await convertMdToHtml(
-					plugin.app,
-					view.getViewData(),
-					view,
-				),
-				version: version ? version + 1 : 1,
-			});
+			if (!spaceKey) {
+				spaceKey = plugin.settings.spaceKey;
+			}
 
-			const response = JSON.parse(stringResponse);
+			const resultPage = await publishUseCase.uploadMarkdown(view, {
+				pageId,
+				version,
+				spaceKey,
+				parentId: plugin.settings.parentId,
+			});
 
 			await plugin.app.fileManager.processFrontMatter(
 				view.file,
 				(fronmatter) => {
-					fronmatter.confluence_page_id = response.id;
-					fronmatter.confluence_space = response.space.key;
-					fronmatter.confluence_page_version =
-						response.version.number;
+					fronmatter.confluence_page_id = resultPage.pageId;
+					fronmatter.confluence_space = resultPage.spaceKey;
+					fronmatter.confluence_page_version = resultPage.version;
 				},
 			);
+
 			new Notice("The file is successfully published!");
 		} catch (err) {
 			console.error(err);
