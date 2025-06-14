@@ -1,6 +1,10 @@
 # Obsidian Confluence Unofficial
 
 ![Build Status](https://github.com/nchursin/obsidian-confluence-unofficial/actions/workflows/test.yml/badge.svg)
+![Plugin Version](https://img.shields.io/badge/plugin-0.2.1-blue)
+![Required Obsidian Version](https://img.shields.io/badge/requires-0.15.0+-purple)
+[![libera manifesto](https://img.shields.io/badge/libera-manifesto-lightgrey.svg)](https://liberamanifesto.com)
+
 
 > WARNING! This plugin is in a very early stage of development. Feel free to use it, but it's your funeral, pal. :)
 
