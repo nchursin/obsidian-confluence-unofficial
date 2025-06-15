@@ -1,5 +1,6 @@
 import { ConfluenceClient } from "../src/confluenceApi/client";
 import { request } from "obsidian";
+import { PageInfo } from "src/model";
 
 describe("ConfluenceClient", () => {
 	let mockAuth: any;
@@ -25,18 +26,103 @@ describe("ConfluenceClient", () => {
 	};
 
 	describe("upsertPage", () => {
-		it("should POST to /rest/api/content for new page", async () => {
+		it("should translate response to PageInfo", async () => {
 			const confluenceResponse = {
 				id: "test-id",
+				status: "current",
+				title: "Page title",
+				spaceId: "1234",
+				parentId: "parent-id",
+				parentType: "page",
+				position: 57,
+				authorId: "<string>",
+				ownerId: "<string>",
+				lastOwnerId: "<string>",
+				createdAt: "<string>",
+				version: {
+					createdAt: "<string>",
+					message: "<string>",
+					number: 19,
+					minorEdit: true,
+					authorId: "<string>",
+				},
+				body: { storage: {}, atlas_doc_format: {}, view: {} },
+				labels: {
+					results: [
+						{
+							id: "<string>",
+							name: "<string>",
+							prefix: "<string>",
+						},
+					],
+					meta: { hasMore: true, cursor: "<string>" },
+					_links: { self: "<string>" },
+				},
+				properties: {
+					results: [{ id: "<string>", key: "<string>", version: {} }],
+					meta: { hasMore: true, cursor: "<string>" },
+					_links: { self: "<string>" },
+				},
+				operations: {
+					results: [
+						{ operation: "<string>", targetType: "<string>" },
+					],
+					meta: { hasMore: true, cursor: "<string>" },
+					_links: { self: "<string>" },
+				},
+				likes: {
+					results: [{ accountId: "<string>" }],
+					meta: { hasMore: true, cursor: "<string>" },
+					_links: { self: "<string>" },
+				},
+				versions: {
+					results: [
+						{
+							createdAt: "<string>",
+							message: "<string>",
+							number: 19,
+							minorEdit: true,
+							authorId: "<string>",
+						},
+					],
+					meta: { hasMore: true, cursor: "<string>" },
+					_links: { self: "<string>" },
+				},
+				isFavoritedByCurrentUser: true,
+				_links: { base: "<string>" },
 			};
 			mockAuth.getAuth.mockReturnValue({
 				type: "BASIC",
 				basic: { username: "u", token: "t" },
 			});
 			mockRequest.mockResolvedValue(JSON.stringify(confluenceResponse));
+
+			const expectedPageInfo: PageInfo = {
+				pageId: confluenceResponse.id,
+				parentId: confluenceResponse.parentId,
+				spaceKey: basePage.spaceKey,
+				version: confluenceResponse.version.number,
+			};
+
 			await expect(client.upsertPage(basePage)).resolves.toEqual(
-				confluenceResponse,
+				expectedPageInfo,
 			);
+		});
+
+		it("should POST to /rest/api/content for new page", async () => {
+			const confluenceResponse = {
+				id: "test-id",
+				version: {
+					number: 5,
+				},
+			};
+			mockAuth.getAuth.mockReturnValue({
+				type: "BASIC",
+				basic: { username: "u", token: "t" },
+			});
+			mockRequest.mockResolvedValue(JSON.stringify(confluenceResponse));
+			await client.upsertPage(basePage);
+
 			const call = mockRequest.mock.calls[0][0];
 			expect(call.url).toBe(
 				"https://example.atlassian.net/rest/api/content",
@@ -56,6 +142,9 @@ describe("ConfluenceClient", () => {
 		it("should PUT to /rest/api/content/{pageId} for existing page", async () => {
 			const confluenceResponse = {
 				id: "test-id",
+				version: {
+					number: 5,
+				},
 			};
 			mockAuth.getAuth.mockReturnValue({
 				type: "BASIC",
@@ -63,9 +152,9 @@ describe("ConfluenceClient", () => {
 			});
 			mockRequest.mockResolvedValue(JSON.stringify(confluenceResponse));
 			const page = { ...basePage, pageId: "456", version: 2 };
-			await expect(client.upsertPage(page)).resolves.toEqual(
-				confluenceResponse,
-			);
+
+			await client.upsertPage(page);
+
 			const call = mockRequest.mock.calls[0][0];
 			expect(call.url).toBe(
 				"https://example.atlassian.net/rest/api/content/456",
@@ -79,6 +168,9 @@ describe("ConfluenceClient", () => {
 		it("should include all required headers", async () => {
 			const confluenceResponse = {
 				id: "test-id",
+				version: {
+					number: 5,
+				},
 			};
 			mockAuth.getAuth.mockReturnValue({
 				type: "PAT",
@@ -86,6 +178,7 @@ describe("ConfluenceClient", () => {
 			});
 			mockRequest.mockResolvedValue(JSON.stringify(confluenceResponse));
 			await client.upsertPage(basePage);
+
 			const call = mockRequest.mock.calls[0][0];
 			expect(call.headers["Content-Type"]).toMatch(/application\/json/);
 			expect(call.headers["X-Atlassian-Token"]).toBe("nocheck");
@@ -174,6 +267,9 @@ describe("ConfluenceClient", () => {
 			mockRequest.mockResolvedValue(
 				JSON.stringify({
 					id: "test-id",
+					version: {
+						number: 5,
+					},
 				}),
 			);
 			await client.upsertPage(basePage);
@@ -188,6 +284,9 @@ describe("ConfluenceClient", () => {
 			mockRequest.mockResolvedValue(
 				JSON.stringify({
 					id: "test-id",
+					version: {
+						number: 5,
+					},
 				}),
 			);
 			await client.upsertPage(basePage);
@@ -196,4 +295,3 @@ describe("ConfluenceClient", () => {
 		});
 	});
 });
-

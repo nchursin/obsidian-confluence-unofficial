@@ -5,6 +5,7 @@ import { ConfluencePage } from "src/confluenceApi";
 import { Window, HTMLDivElement, Document } from "happy-dom";
 import { downgradeFromHtml5 } from "src/utils/htmlProcessor";
 import { basename } from "path";
+import { Attachment } from "src/confluenceApi/model";
 
 jest.mock("src/confluenceApi", () => ({
 	ConfluenceClient: jest.fn(),
@@ -27,20 +28,28 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 
 	beforeEach(() => {
 		confluenceClient = {
-			upsertPage: jest.fn((page: ConfluencePage) => ({
-				id: page.pageId || "page-1",
-				space: {
-					key: page.spaceKey,
-				},
-				version: {
-					number: page.version,
-				},
-			})),
+			upsertPage: jest.fn(
+				(page: ConfluencePage): PageInfo => ({
+					pageId: page.pageId || "page-1",
+					spaceKey: page.spaceKey,
+					parentId: page.parentId,
+					version: page.version,
+				}),
+			),
 			uploadImage: jest.fn(
-				(_: string, fileName: string, __: ArrayBuffer | Uint8Array) => {
+				(
+					_: string,
+					fileName: string,
+					__: ArrayBuffer | Uint8Array,
+				): Attachment => {
 					return {
+						id: `att_id_${fileName}`,
+						name: fileName,
 						links: {
 							download: `${baseUrl}/${fileName}?${urlParams}`,
+							webui: `${baseUrl}/${fileName}?${urlParams}`,
+							thumbnail: `${baseUrl}/${fileName}?${urlParams}`,
+							self: `${baseUrl}/${fileName}?${urlParams}`,
 						},
 					};
 				},
