@@ -1,6 +1,7 @@
 import { readFile } from "fs/promises";
 import { MarkdownView } from "obsidian";
 import * as path from "path";
+import * as he from "he";
 import { basename } from "path";
 import { ConfluenceClient } from "src/confluenceApi";
 import { Attachment } from "src/confluenceApi/model";
@@ -99,38 +100,40 @@ export class UploadMarkDownToConfluenceUseCase {
 			)
 			.map((img) => img.attributes.getNamedItem("src")?.value || "");
 
-		const imagesSrcPlain = images
+		const localFiles: LocalUploadedFile[] = images
 			.map(
 				(filePath): LocalUploadedFile => ({
 					localPath: filePath,
 					unescapedPath: filePath,
 				}),
 			)
-			.map((file) => ({
-				...file,
-				localPath: decodeURI(
-					file.localPath
-						?.replace(/app:\/\/\w+/, "")
-						.replace(/\?.+/, ""),
-				),
-			}));
-
-		const localFiles: LocalUploadedFile[] = imagesSrcPlain.map(
-			(src: LocalUploadedFile) => {
+			.map(
+				(file): LocalUploadedFile => ({
+					...file,
+					localPath: decodeURI(
+						file.localPath
+							?.replace(/app:\/\/\w+/, "")
+							.replace(/\?.+/, ""),
+					),
+				}),
+			)
+			.map((src: LocalUploadedFile): LocalUploadedFile => {
 				const filename = basename(src.localPath);
 				const attachmentInfo = existingAttachments.find(
 					(att: Attachment) => att.name === filename,
 				);
 				if (attachmentInfo) {
-					attachmentInfo.links.download =
-						attachmentInfo?.links.download.replaceAll("&amp;", "&");
+					attachmentInfo.links.download = he.decode(
+						attachmentInfo.links.download,
+					);
+					// attachmentInfo.links.download =
+					// 	attachmentInfo.links.download.replaceAll("&amp;", "&");
 				}
 				return {
 					...src,
 					attachmentInfo,
 				};
-			},
-		);
+			});
 
 		const atts: LocalUploadedFile[] = await Promise.all(
 			localFiles.map(async (file: LocalUploadedFile) => {
@@ -162,10 +165,14 @@ export class UploadMarkDownToConfluenceUseCase {
 	): Promise<PageInfo> {
 		let resultHtml = downgradeFromHtml5(html.innerHTML);
 		attachments.forEach((att) => {
+			if (!att.attachmentInfo) {
+				return;
+			}
 			resultHtml = resultHtml.replace(
 				att.unescapedPath,
-				att.attachmentInfo?.links.download.replaceAll("&", "&amp;") ||
-					"",
+				he.encode(att.attachmentInfo.links.download, {
+					useNamedReferences: true,
+				}) || "",
 			);
 		});
 
