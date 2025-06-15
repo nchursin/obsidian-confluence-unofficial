@@ -364,16 +364,14 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 			);
 		});
 
-		expect(confluenceClient.upsertPage).toHaveBeenCalledWith(
-			expect.objectContaining({
-				pageId: "page-1",
-				spaceKey: destination.spaceKey,
-				title: "Title",
-				parentId: destination.parentId,
-				htmlContent: downgradeFromHtml5(htmlAfterAttachments),
-				version: 2,
-			}),
-		);
+		expect(confluenceClient.upsertPage).toHaveBeenCalledWith({
+			pageId: "page-1",
+			spaceKey: destination.spaceKey,
+			title: "Title",
+			parentId: destination.parentId,
+			htmlContent: downgradeFromHtml5(htmlAfterAttachments),
+			version: 2,
+		});
 
 		expect(confluenceClient.uploadImage).toHaveBeenCalledTimes(
 			attachments.length,
