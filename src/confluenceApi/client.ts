@@ -1,4 +1,5 @@
 import { request } from "obsidian";
+import { PageInfo } from "src/model";
 import { PageRequestBody } from "./interfaces";
 import { Attachment } from "./model";
 
@@ -30,7 +31,7 @@ export interface Auth {
 export class ConfluenceClient {
 	constructor(private readonly auth: ConfluenceAuthInfo) {}
 
-	async upsertPage(page: ConfluencePage): Promise<any> {
+	async upsertPage(page: ConfluencePage): Promise<PageInfo> {
 		const body: PageRequestBody = {
 			type: "page",
 			status: "current",
@@ -62,7 +63,7 @@ export class ConfluenceClient {
 			method = "PUT";
 		}
 
-		const response = await request({
+		const responseText = await request({
 			url,
 			method,
 			headers: {
@@ -75,7 +76,13 @@ export class ConfluenceClient {
 			body: JSON.stringify(body),
 		});
 
-		return JSON.parse(response);
+		const response = JSON.parse(responseText);
+		return {
+			pageId: response.id,
+			parentId: response.parentId,
+			spaceKey: page.spaceKey,
+			version: response.version.number,
+		};
 	}
 
 	async uploadImage(
