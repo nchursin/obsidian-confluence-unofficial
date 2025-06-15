@@ -114,7 +114,7 @@ export class UploadMarkDownToConfluenceUseCase {
 			);
 		});
 
-		const response2: any = await this.confluenceClient.upsertPage({
+		const response2: PageInfo = await this.confluenceClient.upsertPage({
 			pageId: destination.pageId,
 			spaceKey: destination.spaceKey,
 			title: view.getDisplayText(),
@@ -123,7 +123,7 @@ export class UploadMarkDownToConfluenceUseCase {
 			version: destination.version ? destination.version + 1 : 1,
 		});
 
-		destination.version = response2.version.number;
+		destination.version = response2.version;
 		return destination;
 	}
 
@@ -133,21 +133,17 @@ export class UploadMarkDownToConfluenceUseCase {
 	): Promise<PageInfo> {
 		const renderDiv = await convertMdToHtmlElement(view);
 
-		if (!destination.pageId) {
-			destination.version = 0;
-		}
-
-		const response: any = await this.confluenceClient.upsertPage({
+		const response: PageInfo = await this.confluenceClient.upsertPage({
 			pageId: destination.pageId,
 			spaceKey: destination.spaceKey,
 			title: view.getDisplayText(),
 			parentId: destination.parentId,
 			htmlContent: downgradeFromHtml5(renderDiv.innerHTML),
-			version: destination.version + 1,
+			version: 1,
 		});
 
-		destination.pageId = response.id;
-		destination.version = response.version.number;
+		destination.pageId = response.pageId;
+		destination.version = response.version;
 
 		const existingAttachments = await this.confluenceClient.getAttachments({
 			pageId: destination.pageId || "",
@@ -209,7 +205,7 @@ export class UploadMarkDownToConfluenceUseCase {
 			);
 		});
 
-		const response2: any = await this.confluenceClient.upsertPage({
+		const response2: PageInfo = await this.confluenceClient.upsertPage({
 			pageId: destination.pageId,
 			spaceKey: destination.spaceKey,
 			title: view.getDisplayText(),
@@ -218,7 +214,7 @@ export class UploadMarkDownToConfluenceUseCase {
 			version: destination.version ? destination.version + 1 : 1,
 		});
 
-		destination.version = response2.version.number;
+		destination.version = response2.version;
 		return destination;
 	}
 }
