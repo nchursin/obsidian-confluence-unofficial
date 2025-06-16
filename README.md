@@ -1,7 +1,7 @@
 # Obsidian Confluence Unofficial
 
 ![Build Status](https://github.com/nchursin/obsidian-confluence-unofficial/actions/workflows/test.yml/badge.svg)
-![Plugin Version](https://img.shields.io/badge/plugin-0.2.2-blue)
+![Plugin Version](https://img.shields.io/badge/plugin-0.3.0-blue)
 ![Required Obsidian Version](https://img.shields.io/badge/requires-0.15.0+-purple)
 [![libera manifesto](https://img.shields.io/badge/libera-manifesto-lightgrey.svg)](https://liberamanifesto.com)
 [![codecov](https://codecov.io/gh/nchursin/obsidian-confluence-unofficial/branch/main/graph/badge.svg)](https://codecov.io/gh/nchursin/obsidian-confluence-unofficial)
