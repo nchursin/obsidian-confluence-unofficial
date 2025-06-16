@@ -52,7 +52,7 @@ export class ConfluenceClient {
 			},
 		};
 
-		let url = `${this.auth.getURL()}/rest/api/content`;
+		let url = `${this.auth.getURL()}/api/content`;
 		let method = "POST";
 		if (page.pageId) {
 			body.id = page.pageId;
@@ -121,7 +121,7 @@ export class ConfluenceClient {
 		bodyBytes.set(preambleBytes, 0);
 		bodyBytes.set(fileBytes, preambleBytes.length);
 		bodyBytes.set(postambleBytes, preambleBytes.length + fileBytes.length);
-		const url = `${this.auth.getURL()}/rest/api/content/${pageId}/child/attachment`;
+		const url = `${this.auth.getURL()}/api/content/${pageId}/child/attachment`;
 
 		const urlResponse = await requestUrl({
 			url,
@@ -163,7 +163,7 @@ export class ConfluenceClient {
 	}: {
 		pageId: string;
 	}): Promise<[Attachment]> {
-		const url = `${this.auth.getURL()}/rest/api/content/${pageId}/child/attachment?limit=100`;
+		const url = `${this.auth.getURL()}/api/content/${pageId}/child/attachment?limit=100`;
 
 		const urlResponse = await requestUrl({
 			url,

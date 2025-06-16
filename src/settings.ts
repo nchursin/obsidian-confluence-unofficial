@@ -6,6 +6,7 @@ export const DEFAULT_SETTINGS: ConfluenceIntegrationSettings = {
 	authType: "",
 	username: "",
 	token: "",
+	apiPrefix: "rest",
 	spaceKey: "",
 	parentId: "",
 };
@@ -52,6 +53,20 @@ export class ConfluenceSettingsTab extends PluginSettingTab {
 						this.plugin.settings.authType = value;
 						await this.plugin.saveData(this.plugin.settings);
 						this.display();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("API Prefix")
+			.setDesc(
+				"Part of the URL between host and `api`. Usually `rest` or `wiki`",
+			)
+			.addText((text) =>
+				text
+					.setValue(this.plugin.settings.apiPrefix)
+					.onChange(async (value) => {
+						this.plugin.settings.apiPrefix = value;
+						await this.plugin.saveData(this.plugin.settings);
 					}),
 			);
 

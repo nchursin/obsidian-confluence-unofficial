@@ -26,7 +26,9 @@ describe("ConfluenceClient", () => {
 		(obsidianRequestUrl as unknown as jest.Mock) = requestUrl;
 
 		mockAuth = {
-			getURL: jest.fn().mockReturnValue("https://example.atlassian.net"),
+			getURL: jest
+				.fn()
+				.mockReturnValue("https://example.atlassian.net/rest"),
 			getAuth: jest.fn(),
 		};
 		client = new ConfluenceClient(mockAuth);

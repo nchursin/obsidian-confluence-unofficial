@@ -4,7 +4,7 @@ import { Auth, ConfluenceAuthInfo } from "./client";
 export class ConfluenceConnectionInfo implements ConfluenceAuthInfo {
 	constructor(private readonly plugin: ConfluencePlugin) {}
 	getURL(): string {
-		return this.plugin.settings.confluenceUrl;
+		return `${this.plugin.settings.confluenceUrl}/${this.plugin.settings.apiPrefix}`;
 	}
 	getAuth(): Auth {
 		let authType: "BASIC" | "PAT" = "BASIC";
