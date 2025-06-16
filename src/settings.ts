@@ -15,17 +15,16 @@ interface ConfluencePlugin extends Plugin {
 }
 
 export class ConfluenceSettingsTab extends PluginSettingTab {
-	plugin: ConfluencePlugin;
-
-	constructor(app: App, plugin: ConfluencePlugin) {
+	constructor(
+		app: App,
+		private plugin: ConfluencePlugin,
+	) {
 		super(app, plugin);
-		this.plugin = plugin;
 	}
 
-	display(): void {
+	displayConnectionInfo() {
 		const { containerEl } = this;
-
-		containerEl.empty();
+		containerEl.createEl("h3", { text: "Confluence Connection Setup" });
 
 		new Setting(containerEl)
 			.setName("Confluence URL")
@@ -52,21 +51,24 @@ export class ConfluenceSettingsTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.authType = value;
 						await this.plugin.saveData(this.plugin.settings);
+						this.display();
 					}),
 			);
 
-		new Setting(containerEl)
-			.setName("Username")
-			.setDesc("Required for Basic Auth")
-			.addText((text) =>
-				text
-					.setPlaceholder("john@doe.com")
-					.setValue(this.plugin.settings.username)
-					.onChange(async (value) => {
-						this.plugin.settings.username = value;
-						await this.plugin.saveData(this.plugin.settings);
-					}),
-			);
+		if (this.plugin.settings.authType != "PAT") {
+			new Setting(containerEl)
+				.setName("Username")
+				.setDesc("Required for Basic Auth")
+				.addText((text) =>
+					text
+						.setPlaceholder("john@doe.com")
+						.setValue(this.plugin.settings.username)
+						.onChange(async (value) => {
+							this.plugin.settings.username = value;
+							await this.plugin.saveData(this.plugin.settings);
+						}),
+				);
+		}
 
 		new Setting(containerEl)
 			.setName("Token")
@@ -80,6 +82,11 @@ export class ConfluenceSettingsTab extends PluginSettingTab {
 						await this.plugin.saveData(this.plugin.settings);
 					}),
 			);
+	}
+
+	displayDefaultPageSettings() {
+		const { containerEl } = this;
+		containerEl.createEl("h3", { text: "Default Page Settings" });
 
 		new Setting(containerEl).setName("Space Key").addText((text) =>
 			text
@@ -100,5 +107,16 @@ export class ConfluenceSettingsTab extends PluginSettingTab {
 					await this.plugin.saveData(this.plugin.settings);
 				}),
 		);
+	}
+
+	display(): void {
+		const { containerEl } = this;
+		containerEl.empty();
+		containerEl.createEl("h2", {
+			text: "Confluence Unofficial Plugin Setup",
+		});
+
+		this.displayConnectionInfo();
+		this.displayDefaultPageSettings();
 	}
 }
