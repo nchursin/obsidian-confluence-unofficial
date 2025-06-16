@@ -47,7 +47,7 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 						name: fileName,
 						links: {
 							download: `${baseUrl}/${fileName}?${urlParams}`,
-							webui: `${baseUrl}/${fileName}?${urlParams}`,
+							webui: `${baseUrl}/webui/${fileName}?${urlParams}`,
 							thumbnail: `${baseUrl}/${fileName}?${urlParams}`,
 							self: `${baseUrl}/${fileName}?${urlParams}`,
 						},
@@ -85,15 +85,19 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 	};
 
 	const divWithImages = (renderDiv: HTMLDivElement, imageUrls: string[]) => {
-		imageUrls.forEach((src) => {
+		const images = imageUrls.map((src) => {
 			const span = doc.createElement("span");
 			span.classList.add("internal-embed", "media-embed", "image-embed");
 			const img = doc.createElement("img");
 			img.setAttribute("src", src);
 			span.appendChild(img);
 			renderDiv.appendChild(span);
+			return img;
 		});
-		return renderDiv;
+		return {
+			renderDiv,
+			images,
+		};
 	};
 
 	it("should publish file without attachments", async () => {
@@ -122,23 +126,31 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 		const existingAttachment = "existingAttachment";
 		const newAttachments = ["imageUrl1", "imageUrl2", "imageUrl3"];
 		const attachments = [...newAttachments, existingAttachment];
-		renderDiv = divWithImages(renderDiv, attachments);
+		const divWithImagesResult = divWithImages(renderDiv, attachments);
+		renderDiv = divWithImagesResult.renderDiv;
 
 		confluenceClient.getAttachments.mockResolvedValue([
 			{
 				id: "attachment",
 				name: existingAttachment,
 				links: {
+					webui: `${baseUrl}/webui/${basename(existingAttachment)}?${urlParams.replaceAll("&", "&amp;")}`,
 					download: `${baseUrl}/${basename(existingAttachment)}?${urlParams.replaceAll("&", "&amp;")}`,
 				},
 			},
 		]);
 
 		let htmlAfterAttachments = renderDiv.innerHTML;
-		attachments.forEach((att) => {
+		divWithImagesResult.images.forEach((img, index) => {
+			const att = attachments[index];
+
+			const downnloadLink = `${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`;
+			const webUiLink = `${baseUrl}/webui/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`;
+
+			const replacedLink = img.outerHTML.replaceAll(att, downnloadLink);
 			htmlAfterAttachments = htmlAfterAttachments.replaceAll(
-				att,
-				`${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`,
+				img.outerHTML,
+				`<a href="${webUiLink}">${replacedLink}</a>`,
 			);
 		});
 
@@ -177,23 +189,32 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 		const existingAttachment = "existingAttachment";
 		const newAttachments = ["imageUrl1"];
 		const attachments = [existingAttachment, ...newAttachments];
-		renderDiv = divWithImages(renderDiv, attachments);
+		const divWithImagesResult = divWithImages(renderDiv, attachments);
+		renderDiv = divWithImagesResult.renderDiv;
 
 		confluenceClient.getAttachments.mockResolvedValue([
 			{
 				id: "attachment",
 				name: existingAttachment,
 				links: {
+					webui: `${baseUrl}/webui/${basename(existingAttachment)}?${urlParams.replaceAll("&", "&amp;")}`,
 					download: `${baseUrl}/${basename(existingAttachment)}?${urlParams.replaceAll("&", "&amp;")}`,
 				},
 			},
 		]);
 
 		let htmlAfterAttachments = renderDiv.innerHTML;
-		attachments.forEach((att) => {
+
+		divWithImagesResult.images.forEach((img, index) => {
+			const att = attachments[index];
+
+			const downnloadLink = `${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`;
+			const webUiLink = `${baseUrl}/webui/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`;
+
+			const replacedLink = img.outerHTML.replaceAll(att, downnloadLink);
 			htmlAfterAttachments = htmlAfterAttachments.replaceAll(
-				att,
-				`${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`,
+				img.outerHTML,
+				`<a href="${webUiLink}">${replacedLink}</a>`,
 			);
 		});
 
@@ -229,26 +250,34 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 	});
 
 	it("should NOT re-upload attachments if they are there already", async () => {
-		const attahcment = "imageUrl1";
-		const attachments = [attahcment];
+		const attachment = "imageUrl1";
+		const attachments = [attachment];
 		confluenceClient.getAttachments.mockResolvedValue([
 			{
 				id: "attachment",
-				name: attahcment,
+				name: attachment,
 				links: {
-					download: `${baseUrl}/${basename(attahcment)}?${urlParams.replaceAll("&", "&amp;")}`,
+					webui: `${baseUrl}/webui/${basename(attachment)}?${urlParams.replaceAll("&", "&amp;")}`,
+					download: `${baseUrl}/${basename(attachment)}?${urlParams.replaceAll("&", "&amp;")}`,
 				},
 			},
 		]);
-		renderDiv = divWithImages(renderDiv, attachments);
+		const divWithImagesResult = divWithImages(renderDiv, attachments);
+		renderDiv = divWithImagesResult.renderDiv;
 
 		const result = await sut.uploadMarkdown(view, { ...destination });
 
 		let htmlAfterAttachments = renderDiv.innerHTML;
-		attachments.forEach((att) => {
+		divWithImagesResult.images.forEach((img, index) => {
+			const att = attachments[index];
+
+			const downnloadLink = `${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`;
+			const webUiLink = `${baseUrl}/webui/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`;
+
+			const replacedLink = img.outerHTML.replaceAll(att, downnloadLink);
 			htmlAfterAttachments = htmlAfterAttachments.replaceAll(
-				att,
-				`${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`,
+				img.outerHTML,
+				`<a href="${webUiLink}">${replacedLink}</a>`,
 			);
 		});
 
@@ -338,7 +367,8 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 
 	it("should use new pageId for uploads if non is passed", async () => {
 		const attachments = ["imageUrl1"];
-		renderDiv = divWithImages(renderDiv, attachments);
+		const divWithImagesResult = divWithImages(renderDiv, attachments);
+		renderDiv = divWithImagesResult.renderDiv;
 
 		const result = await sut.uploadMarkdown(view, {
 			...destination,
@@ -357,10 +387,16 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 		);
 
 		let htmlAfterAttachments = renderDiv.innerHTML;
-		attachments.forEach((att) => {
+		divWithImagesResult.images.forEach((img, index) => {
+			const att = attachments[index];
+
+			const downnloadLink = `${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`;
+			const webUiLink = `${baseUrl}/webui/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`;
+
+			const replacedLink = img.outerHTML.replaceAll(att, downnloadLink);
 			htmlAfterAttachments = htmlAfterAttachments.replaceAll(
-				att,
-				`${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`,
+				img.outerHTML,
+				`<a href="${webUiLink}">${replacedLink}</a>`,
 			);
 		});
 
@@ -395,20 +431,32 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 		const appPrefix = "app://111123456abc654332";
 		const imageUrl = "imageUrl";
 		const attachments = [imageUrl];
-		renderDiv = divWithImages(
+
+		const divWithImagesResult = divWithImages(
 			renderDiv,
 			attachments.map((attUrl) => `${appPrefix}/${attUrl}`),
 		);
+		renderDiv = divWithImagesResult.renderDiv;
 
 		const result = await sut.uploadMarkdown(view, {
 			...destination,
 		});
 
 		let htmlAfterAttachments = renderDiv.innerHTML;
-		attachments.forEach((att) => {
-			htmlAfterAttachments = htmlAfterAttachments.replaceAll(
+
+		divWithImagesResult.images.forEach((img, index) => {
+			const att = attachments[index];
+
+			const downnloadLink = `${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`;
+			const webUiLink = `${baseUrl}/webui/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`;
+
+			const replacedLink = img.outerHTML.replaceAll(
 				`${appPrefix}/${att}`,
-				`${baseUrl}/${basename(att)}?${urlParams.replaceAll("&", "&amp;")}`,
+				downnloadLink,
+			);
+			htmlAfterAttachments = htmlAfterAttachments.replaceAll(
+				img.outerHTML,
+				`<a href="${webUiLink}">${replacedLink}</a>`,
 			);
 		});
 

@@ -15,6 +15,7 @@ interface LocalUploadedFile {
 	attachmentInfo?: Attachment;
 	localPath: string;
 	unescapedPath: string;
+	imgElement: HTMLElement;
 }
 
 export class UploadMarkDownToConfluenceUseCase {
@@ -94,17 +95,18 @@ export class UploadMarkDownToConfluenceUseCase {
 		const linkWrappers = html.getElementsByClassName(
 			"internal-embed media-embed image-embed",
 		);
-		const images = Array.from(linkWrappers)
-			.flatMap((wrapper) =>
-				Array.from(wrapper.getElementsByTagName("img")),
-			)
-			.map((img) => img.attributes.getNamedItem("src")?.value || "");
+		const images = Array.from(linkWrappers).flatMap((wrapper) =>
+			Array.from(wrapper.getElementsByTagName("img")),
+		);
 
 		const localFiles: LocalUploadedFile[] = images
 			.map(
-				(filePath): LocalUploadedFile => ({
-					localPath: filePath,
-					unescapedPath: filePath,
+				(imgElement): LocalUploadedFile => ({
+					localPath:
+						imgElement.attributes.getNamedItem("src")?.value || "",
+					unescapedPath:
+						imgElement.attributes.getNamedItem("src")?.value || "",
+					imgElement,
 				}),
 			)
 			.map(
@@ -126,8 +128,9 @@ export class UploadMarkDownToConfluenceUseCase {
 					attachmentInfo.links.download = he.decode(
 						attachmentInfo.links.download,
 					);
-					// attachmentInfo.links.download =
-					// 	attachmentInfo.links.download.replaceAll("&amp;", "&");
+					attachmentInfo.links.webui = he.decode(
+						attachmentInfo.links.webui,
+					);
 				}
 				return {
 					...src,
@@ -163,17 +166,25 @@ export class UploadMarkDownToConfluenceUseCase {
 		pageMeta: PageInfo,
 		attachments: LocalUploadedFile[],
 	): Promise<PageInfo> {
-		let resultHtml = downgradeFromHtml5(html.innerHTML);
+		let resultHtml = html.innerHTML;
+
 		attachments.forEach((att) => {
 			if (!att.attachmentInfo) {
 				return;
 			}
-			resultHtml = resultHtml.replace(
+
+			let html = att.imgElement.outerHTML;
+			html = html.replace(
 				att.unescapedPath,
 				he.encode(att.attachmentInfo.links.download, {
 					useNamedReferences: true,
 				}) || "",
 			);
+			html = `<a href="${he.encode(att.attachmentInfo.links.webui, {
+				useNamedReferences: true,
+			})}">${html}</a>`;
+
+			resultHtml = resultHtml.replace(att.imgElement.outerHTML, html);
 		});
 
 		return this.confluenceClient.upsertPage({
@@ -181,7 +192,7 @@ export class UploadMarkDownToConfluenceUseCase {
 			spaceKey: pageMeta.spaceKey,
 			title,
 			parentId: pageMeta.parentId,
-			htmlContent: resultHtml,
+			htmlContent: downgradeFromHtml5(resultHtml),
 			version: pageMeta.pageId ? pageMeta.version + 1 : 1,
 		});
 	}
