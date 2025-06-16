@@ -5,21 +5,15 @@ import * as he from "he";
 import { basename } from "path";
 import { ConfluenceClient } from "src/confluenceApi";
 import { Attachment } from "src/confluenceApi/model";
-import { PageInfo } from "src/model";
-import {
-	convertMdToHtmlElement,
-	downgradeFromHtml5,
-} from "src/utils/htmlProcessor";
-
-interface LocalUploadedFile {
-	attachmentInfo?: Attachment;
-	localPath: string;
-	unescapedPath: string;
-	imgElement: HTMLElement;
-}
+import { LocalUploadedFile, PageInfo } from "src/model";
+import { convertMdToHtmlElement } from "src/utils/htmlProcessor";
+import { HtmlProcessor } from "src/htmlProcessors";
 
 export class UploadMarkDownToConfluenceUseCase {
-	constructor(private readonly confluenceClient: ConfluenceClient) {}
+	constructor(
+		private readonly confluenceClient: ConfluenceClient,
+		private readonly htmlProcessor: HtmlProcessor,
+	) {}
 
 	public async uploadMarkdown(
 		view: MarkdownView,
@@ -166,33 +160,14 @@ export class UploadMarkDownToConfluenceUseCase {
 		pageMeta: PageInfo,
 		attachments: LocalUploadedFile[],
 	): Promise<PageInfo> {
-		let resultHtml = html.innerHTML;
-
-		attachments.forEach((att) => {
-			if (!att.attachmentInfo) {
-				return;
-			}
-
-			let html = att.imgElement.outerHTML;
-			html = html.replace(
-				att.unescapedPath,
-				he.encode(att.attachmentInfo.links.download, {
-					useNamedReferences: true,
-				}) || "",
-			);
-			html = `<a href="${he.encode(att.attachmentInfo.links.webui, {
-				useNamedReferences: true,
-			})}">${html}</a>`;
-
-			resultHtml = resultHtml.replace(att.imgElement.outerHTML, html);
-		});
+		const htmlContent = this.htmlProcessor.prepareHtml(html, attachments);
 
 		return this.confluenceClient.upsertPage({
 			pageId: pageMeta.pageId,
 			spaceKey: pageMeta.spaceKey,
 			title,
 			parentId: pageMeta.parentId,
-			htmlContent: downgradeFromHtml5(resultHtml),
+			htmlContent,
 			version: pageMeta.pageId ? pageMeta.version + 1 : 1,
 		});
 	}

@@ -1,5 +1,6 @@
 import { Plugin } from "obsidian";
 import { ConfluenceClient, ConfluenceConnectionInfo } from "src/confluenceApi";
+import { HtmlProcessorImpl } from "src/htmlProcessors/8.5.xx";
 import { ConfluenceIntegrationSettings } from "src/interfaces";
 import { UploadMarkDownToConfluenceUseCase } from "src/useCases";
 import { publishFile } from "./src/commands";
@@ -30,6 +31,7 @@ export default class ConfluenceUnofficialPlugin extends Plugin {
 				this,
 				new UploadMarkDownToConfluenceUseCase(
 					new ConfluenceClient(new ConfluenceConnectionInfo(this)),
+					new HtmlProcessorImpl(),
 				),
 			),
 		);

@@ -6,6 +6,7 @@ import { Window, HTMLDivElement, Document } from "happy-dom";
 import { downgradeFromHtml5 } from "src/utils/htmlProcessor";
 import { basename } from "path";
 import { Attachment } from "src/confluenceApi/model";
+import { HtmlProcessorImpl } from "src/htmlProcessors/8.5.xx";
 
 jest.mock("src/confluenceApi", () => ({
 	ConfluenceClient: jest.fn(),
@@ -70,7 +71,10 @@ describe("UploadMarkDownToConfluenceUseCase", () => {
 				createEl: jest.fn().mockReturnValue(renderDiv),
 			},
 		};
-		sut = new UploadMarkDownToConfluenceUseCase(confluenceClient);
+		sut = new UploadMarkDownToConfluenceUseCase(
+			confluenceClient,
+			new HtmlProcessorImpl(),
+		);
 		destination = {
 			pageId: "test-page",
 			parentId: "test-parent",
