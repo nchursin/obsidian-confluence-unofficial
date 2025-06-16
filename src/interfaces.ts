@@ -14,6 +14,7 @@ export interface ConfluenceIntegrationSettings {
 	authType: AuthType;
 	username: string;
 	token: string;
+	apiPrefix: string;
 	spaceKey: string;
 	parentId: string;
 }
