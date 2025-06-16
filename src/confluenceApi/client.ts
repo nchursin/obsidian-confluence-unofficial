@@ -1,4 +1,4 @@
-import { request } from "obsidian";
+import { requestUrl } from "obsidian";
 import { PageInfo } from "src/model";
 import { PageRequestBody } from "./interfaces";
 import { Attachment } from "./model";
@@ -63,7 +63,7 @@ export class ConfluenceClient {
 			method = "PUT";
 		}
 
-		const responseText = await request({
+		const urlResponse = await requestUrl({
 			url,
 			method,
 			headers: {
@@ -74,15 +74,24 @@ export class ConfluenceClient {
 				Authorization: getAuthHeader(this.auth),
 			},
 			body: JSON.stringify(body),
+			throw: false,
 		});
 
-		const response = JSON.parse(responseText);
-		return {
-			pageId: response.id,
-			parentId: response.parentId,
-			spaceKey: page.spaceKey,
-			version: response.version.number,
-		};
+		if (urlResponse.status === 200) {
+			const response = urlResponse.json;
+
+			return {
+				pageId: response.id,
+				parentId: response.parentId,
+				spaceKey: page.spaceKey,
+				version: response.version.number,
+			};
+		} else {
+			console.warn("error response: ", urlResponse.json);
+			throw new Error(
+				`Failed to upsert page: ${urlResponse.json.message}`,
+			);
+		}
 	}
 
 	async uploadImage(
@@ -113,7 +122,8 @@ export class ConfluenceClient {
 		bodyBytes.set(fileBytes, preambleBytes.length);
 		bodyBytes.set(postambleBytes, preambleBytes.length + fileBytes.length);
 		const url = `${this.auth.getURL()}/rest/api/content/${pageId}/child/attachment`;
-		const responseText = await request({
+
+		const urlResponse = await requestUrl({
 			url,
 			method: "POST",
 			headers: {
@@ -125,17 +135,19 @@ export class ConfluenceClient {
 			},
 			body: bodyBytes.buffer,
 		});
-		let response;
-		try {
-			response = JSON.parse(responseText);
-		} catch (e) {
+
+		if (urlResponse.status != 200) {
+			console.warn("error response: ", urlResponse.json);
 			throw new Error(
-				"Failed to parse Confluence upload response: " + responseText,
+				`Failed to upload attachmente ${urlResponse.json.message}`,
 			);
 		}
+
+		const response = urlResponse.json;
+
 		if (!response?.results?.length) {
 			throw new Error(
-				"No attachment returned from Confluence: " + responseText,
+				"No attachment returned from Confluence: " + urlResponse,
 			);
 		}
 		const attachment = response.results[0];
@@ -153,7 +165,7 @@ export class ConfluenceClient {
 	}): Promise<[Attachment]> {
 		const url = `${this.auth.getURL()}/rest/api/content/${pageId}/child/attachment?limit=100`;
 
-		const responseText = await request({
+		const urlResponse = await requestUrl({
 			url,
 			method: "GET",
 			headers: {
@@ -165,7 +177,15 @@ export class ConfluenceClient {
 			},
 		});
 
-		const response = JSON.parse(responseText);
+		if (urlResponse.status != 200) {
+			console.warn("error response: ", urlResponse.json);
+			throw new Error(
+				`Failed to get attachments: ${urlResponse.json.message}`,
+			);
+		}
+
+		const response = urlResponse.json;
+
 		const attachments = response.results.map(
 			(res: any): Attachment => ({
 				id: res.id,

@@ -1,15 +1,30 @@
 import { ConfluenceClient } from "../src/confluenceApi/client";
-import { request } from "obsidian";
+import { requestUrl as obsidianRequestUrl, RequestUrlResponse } from "obsidian";
 import { PageInfo } from "src/model";
 
 describe("ConfluenceClient", () => {
 	let mockAuth: any;
 	let client: ConfluenceClient;
-	let mockRequest: jest.Mock;
+	let requestUrl: jest.Mock;
+	const mockResponseForRequestUrl = (response: RequestUrlResponse) => {
+		requestUrl.mockResolvedValue(response);
+	};
+
+	const urlResponse = (
+		status: number,
+		responseObject: any,
+	): RequestUrlResponse => ({
+		status,
+		json: responseObject,
+		arrayBuffer: new TextEncoder().encode(JSON.stringify(responseObject)),
+		headers: {},
+		text: JSON.stringify(responseObject),
+	});
 
 	beforeEach(() => {
-		mockRequest = jest.fn();
-		(request as unknown as jest.Mock) = mockRequest;
+		requestUrl = jest.fn();
+		(obsidianRequestUrl as unknown as jest.Mock) = requestUrl;
+
 		mockAuth = {
 			getURL: jest.fn().mockReturnValue("https://example.atlassian.net"),
 			getAuth: jest.fn(),
@@ -95,7 +110,7 @@ describe("ConfluenceClient", () => {
 				type: "BASIC",
 				basic: { username: "u", token: "t" },
 			});
-			mockRequest.mockResolvedValue(JSON.stringify(confluenceResponse));
+			mockResponseForRequestUrl(urlResponse(200, confluenceResponse));
 
 			const expectedPageInfo: PageInfo = {
 				pageId: confluenceResponse.id,
@@ -120,10 +135,11 @@ describe("ConfluenceClient", () => {
 				type: "BASIC",
 				basic: { username: "u", token: "t" },
 			});
-			mockRequest.mockResolvedValue(JSON.stringify(confluenceResponse));
+			mockResponseForRequestUrl(urlResponse(200, confluenceResponse));
+
 			await client.upsertPage(basePage);
 
-			const call = mockRequest.mock.calls[0][0];
+			const call = requestUrl.mock.calls[0][0];
 			expect(call.url).toBe(
 				"https://example.atlassian.net/rest/api/content",
 			);
@@ -150,12 +166,13 @@ describe("ConfluenceClient", () => {
 				type: "BASIC",
 				basic: { username: "u", token: "t" },
 			});
-			mockRequest.mockResolvedValue(JSON.stringify(confluenceResponse));
+			mockResponseForRequestUrl(urlResponse(200, confluenceResponse));
+
 			const page = { ...basePage, pageId: "456", version: 2 };
 
 			await client.upsertPage(page);
 
-			const call = mockRequest.mock.calls[0][0];
+			const call = requestUrl.mock.calls[0][0];
 			expect(call.url).toBe(
 				"https://example.atlassian.net/rest/api/content/456",
 			);
@@ -176,10 +193,11 @@ describe("ConfluenceClient", () => {
 				type: "PAT",
 				bearer: { token: "tok" },
 			});
-			mockRequest.mockResolvedValue(JSON.stringify(confluenceResponse));
+			mockResponseForRequestUrl(urlResponse(200, confluenceResponse));
+
 			await client.upsertPage(basePage);
 
-			const call = mockRequest.mock.calls[0][0];
+			const call = requestUrl.mock.calls[0][0];
 			expect(call.headers["Content-Type"]).toMatch(/application\/json/);
 			expect(call.headers["X-Atlassian-Token"]).toBe("nocheck");
 			expect(call.headers["User-Agent"]).toBe("dummy");
@@ -192,7 +210,8 @@ describe("ConfluenceClient", () => {
 				type: "PAT",
 				bearer: { token: "tok" },
 			});
-			mockRequest.mockRejectedValue(new Error("fail"));
+			mockResponseForRequestUrl(urlResponse(400, { message: "fail" }));
+
 			await expect(client.upsertPage(basePage)).rejects.toThrow("fail");
 		});
 	});
@@ -215,7 +234,7 @@ describe("ConfluenceClient", () => {
 				bearer: { token: "tok" },
 			});
 
-			mockRequest.mockResolvedValue(JSON.stringify(confluenceResponse));
+			mockResponseForRequestUrl(urlResponse(200, confluenceResponse));
 
 			const page = {
 				pageId: "test-page-id",
@@ -231,7 +250,7 @@ describe("ConfluenceClient", () => {
 				},
 			]);
 
-			const call = mockRequest.mock.calls[0][0];
+			const call = requestUrl.mock.calls[0][0];
 			expect(call.url).toBe(
 				`https://example.atlassian.net/rest/api/content/${page.pageId}/child/attachment?limit=100`,
 			);
@@ -264,16 +283,18 @@ describe("ConfluenceClient", () => {
 				type: "BASIC",
 				basic: { username: "u", token: "t" },
 			});
-			mockRequest.mockResolvedValue(
-				JSON.stringify({
+
+			mockResponseForRequestUrl(
+				urlResponse(200, {
 					id: "test-id",
 					version: {
 						number: 5,
 					},
 				}),
 			);
+
 			await client.upsertPage(basePage);
-			const call = mockRequest.mock.calls[0][0];
+			const call = requestUrl.mock.calls[0][0];
 			expect(call.headers["Authorization"]).toMatch(/^Basic/);
 		});
 		it("should return Bearer header for PAT", async () => {
@@ -281,16 +302,18 @@ describe("ConfluenceClient", () => {
 				type: "PAT",
 				bearer: { token: "tok" },
 			});
-			mockRequest.mockResolvedValue(
-				JSON.stringify({
+
+			mockResponseForRequestUrl(
+				urlResponse(200, {
 					id: "test-id",
 					version: {
 						number: 5,
 					},
 				}),
 			);
+
 			await client.upsertPage(basePage);
-			const call = mockRequest.mock.calls[0][0];
+			const call = requestUrl.mock.calls[0][0];
 			expect(call.headers["Authorization"]).toBe("Bearer tok");
 		});
 	});
