@@ -52,21 +52,24 @@ export class ConfluenceSettingsTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.authType = value;
 						await this.plugin.saveData(this.plugin.settings);
+						this.display();
 					}),
 			);
 
-		new Setting(containerEl)
-			.setName("Username")
-			.setDesc("Required for Basic Auth")
-			.addText((text) =>
-				text
-					.setPlaceholder("john@doe.com")
-					.setValue(this.plugin.settings.username)
-					.onChange(async (value) => {
-						this.plugin.settings.username = value;
-						await this.plugin.saveData(this.plugin.settings);
-					}),
-			);
+		if (this.plugin.settings.authType != "PAT") {
+			new Setting(containerEl)
+				.setName("Username")
+				.setDesc("Required for Basic Auth")
+				.addText((text) =>
+					text
+						.setPlaceholder("john@doe.com")
+						.setValue(this.plugin.settings.username)
+						.onChange(async (value) => {
+							this.plugin.settings.username = value;
+							await this.plugin.saveData(this.plugin.settings);
+						}),
+				);
+		}
 
 		new Setting(containerEl)
 			.setName("Token")
