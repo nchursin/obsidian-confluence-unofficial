@@ -18,6 +18,7 @@ export const publishFile = (
 
 			let pageId: string | undefined;
 			let spaceKey: string | undefined;
+			let parentId: string | undefined;
 			let version = 1;
 			await plugin.app.fileManager.processFrontMatter(
 				view.file,
@@ -25,6 +26,7 @@ export const publishFile = (
 					pageId = fronmatter.confluence_page_id;
 					spaceKey = fronmatter.confluence_space;
 					version = fronmatter.confluence_page_version;
+					parentId = fronmatter.confluence_parent_id;
 				},
 			);
 
@@ -32,11 +34,15 @@ export const publishFile = (
 				spaceKey = plugin.settings.spaceKey;
 			}
 
+			if (!parentId) {
+				parentId = plugin.settings.parentId;
+			}
+
 			const resultPage = await publishUseCase.uploadMarkdown(view, {
 				pageId,
 				version,
 				spaceKey,
-				parentId: plugin.settings.parentId,
+				parentId,
 			});
 
 			await plugin.app.fileManager.processFrontMatter(
@@ -45,6 +51,8 @@ export const publishFile = (
 					fronmatter.confluence_page_id = resultPage.pageId;
 					fronmatter.confluence_space = resultPage.spaceKey;
 					fronmatter.confluence_page_version = resultPage.version;
+					fronmatter.confluence_parent_id =
+						resultPage.parentId || parentId;
 				},
 			);
 
