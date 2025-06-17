@@ -19,6 +19,7 @@ You might be asking "Why, God, why they keep making these plugins?!". The reason
 1. None of the existing plugins supported personal access token auth out of the box
 1. They didn't work for our Confluence self-hosted instance
 1. Our Confluence instance didn't work with HTML5 img tags
+1. I want to make a plugin that would work with any Confluence version out there
 
 ## Features
 1. Basic or personal token auth

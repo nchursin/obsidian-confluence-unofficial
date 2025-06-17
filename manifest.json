@@ -1,11 +1,12 @@
 {
-	"id": "obsidian-confluence-unofficial",
-	"name": "Obsidian Confluence Unofficial",
-	"version": "0.4.0",
-	"minAppVersion": "0.15.0",
-	"description": "Obsidian Confulence Unofficial (but working) plugin",
-	"author": "NChursin",
-	"authorUrl": "https://chursin.dev",
-	"fundingUrl": "https://chursin.dev",
-	"isDesktopOnly": true
+  "id": "obsidian-confluence-unofficial",
+  "name": "Obsidian Confluence Unofficial",
+  "version": "0.4.0",
+  "minAppVersion": "0.15.0",
+  "description": "Obsidian Confulence Unofficial plugin to publish Confluence pages directly from Obsidian",
+  "author": "NChursin",
+  "authorUrl": "https://chursin.dev",
+  "fundingUrl": "https://chursin.dev",
+  "isDesktopOnly": true
 }
+
