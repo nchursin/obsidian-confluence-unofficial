@@ -25,7 +25,10 @@ export class ConfluenceSettingsTab extends PluginSettingTab {
 
 	displayConnectionInfo() {
 		const { containerEl } = this;
-		containerEl.createEl("h3", { text: "Confluence Connection Setup" });
+
+		new Setting(containerEl)
+			.setName("Confluence Connection Setup")
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName("Confluence URL")
@@ -101,7 +104,8 @@ export class ConfluenceSettingsTab extends PluginSettingTab {
 
 	displayDefaultPageSettings() {
 		const { containerEl } = this;
-		containerEl.createEl("h3", { text: "Default Page Settings" });
+
+		new Setting(containerEl).setName("Default Page Settings").setHeading();
 
 		new Setting(containerEl).setName("Space Key").addText((text) =>
 			text
@@ -127,9 +131,6 @@ export class ConfluenceSettingsTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h2", {
-			text: "Confluence Unofficial Plugin Setup",
-		});
 
 		this.displayConnectionInfo();
 		this.displayDefaultPageSettings();
