@@ -1,5 +1,6 @@
 import { requestUrl } from "obsidian";
 import { PageInfo } from "src/model";
+import { ConfluenceAttachmentsResponse } from "./confluenceModel";
 import { PageRequestBody } from "./interfaces";
 import { Attachment } from "./model";
 
@@ -226,13 +227,18 @@ export class ConfluenceClient {
 			);
 		}
 
-		const response = urlResponse.json;
+		const response: ConfluenceAttachmentsResponse = urlResponse.json;
 
 		const attachments = response.results.map(
-			(res: any): Attachment => ({
+			(res): Attachment => ({
 				id: res.id,
 				name: res.title,
-				links: res._links,
+				links: {
+					download: res._links.download,
+					self: res._links.self,
+					thumbnail: res._links.thumbnail,
+					webui: res._links.webui,
+				},
 			}),
 		);
 
