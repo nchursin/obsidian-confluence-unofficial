@@ -8,7 +8,7 @@ jest.mock("obsidian", () => ({
 jest.mock("../src/utils/htmlProcessor", () => ({
 	convertMdToHtml: jest.fn().mockResolvedValue("<p>html</p>"),
 }));
-jest.mock("../src/confluenceApi", () => ({
+jest.mock("../src/confluenceApi/dataCenter/8.5/", () => ({
 	ConfluenceClient: jest.fn(),
 }));
 jest.mock("../src/components/errorModal", () => ({

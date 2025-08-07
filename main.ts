@@ -1,5 +1,8 @@
 import { Plugin } from "obsidian";
-import { ConfluenceClient, ConfluenceConnectionInfo } from "src/confluenceApi";
+import {
+	ConfluenceClient,
+	ConfluenceConnectionInfo,
+} from "src/confluenceApi/dataCenter/8.5";
 import { HtmlProcessorImpl } from "src/htmlProcessors/8.5.xx";
 import { ConfluenceIntegrationSettings } from "src/interfaces";
 import { UploadMarkDownToConfluenceUseCase } from "src/useCases";

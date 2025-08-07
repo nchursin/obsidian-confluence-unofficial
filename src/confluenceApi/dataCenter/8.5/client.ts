@@ -1,33 +1,12 @@
 import { requestUrl } from "obsidian";
 import { PageInfo } from "src/model";
 import { ConfluenceAttachmentsResponse } from "./confluenceModel";
-import { PageRequestBody } from "./interfaces";
-import { Attachment } from "./model";
-
-export interface ConfluencePage {
-	pageId?: string;
-	title: string;
-	spaceKey: string;
-	parentId: string;
-	htmlContent: string;
-	version: number;
-}
-
-export interface ConfluenceAuthInfo {
-	getURL(): string;
-	getAuth(): Auth;
-}
-
-export interface Auth {
-	type: "BASIC" | "PAT";
-	basic?: {
-		username: string;
-		token: string;
-	};
-	bearer?: {
-		token: string;
-	};
-}
+import {
+	ConfluenceAuthInfo,
+	ConfluencePage,
+	PageRequestBody,
+} from "./interfaces";
+import { Attachment } from "../../model";
 
 const CRLF = "\r\n";
 
